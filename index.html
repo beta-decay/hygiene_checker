@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta name="viewport" content="width=device-width, initial-scale=1" /> 
+		<link rel="stylesheet" href="./stylesheet.css">
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+		<style>
+			button {
+				width: 10em;
+				height: 30px;
+			}
+
+			input {
+				width: 20em;
+				height: 30px;
+				text-align: center;
+			}
+
+			#table-here {
+				border-collapse: collapse;
+				width: 100%;
+			}
+			#td-here {
+				width: 5px;
+				vertical-align: center;
+				padding: 5px;
+			}
+            
+            tr {
+                border: 1px solid black;
+            }
+
+			#name {
+				font-weight: bold;
+			}
+
+			#map {
+				border-bottom: 1px solid darkgreen;
+				padding: 5px;
+				vertical-align: center;
+			}
+
+			iframe {
+				width: 75%;
+			}
+            
+            .map_row {
+                background-color: #90b817;
+                visibility: collapse;
+            }
+            
+            .img_row > td {
+                padding: 20px;
+                background-color: #a2cf1a;
+            }
+		</style>
+	</head>
+	<body>
+		<h1>Hygiene Checker</h1>
+		<table>
+			<tr>
+				<td style="border-style: none" colspan="2">
+					<input id="placename" placeholder="Search by address" onkeydown = "if (event.keyCode == 13){ document.getElementById('search').click(); }">
+				</td>
+			</tr>
+			<tr>
+				<td style="border-style: none">
+					<button id="search" onclick="javascript:search()">Search</button>
+				</td>
+				<td style="border-style: none">
+					<button onclick="javascript:currLoc()">Current Location</button>
+				</td>
+			</tr>
+		</table>
+		<br/>
+		<br/>
+		<table id="table-here"></table>
+
+		<script>
+            function toggleShow(n) {
+                var x = document.getElementById("map"+n);
+                if (x.style.visibility === "collapse") {
+                    x.style.visibility = "visible";
+                } else {
+                    x.style.visibility = "collapse";
+                }
+            } 
+            
+			function fillTable(lat, lon) {
+				document.getElementById("table-here").innerHTML = "";
+
+				var url = "http://ratings.food.gov.uk/enhanced-search/en-GB/^/^/DISTANCE/0/^/"+lon+"/"+lat+"/1/20/json";
+				var req = new XMLHttpRequest();
+
+				req.open("get", url, false);
+
+				req.onload = function(e) {
+   					if (req.readyState == 4 && req.status == 200) {
+   						var data = JSON.parse(req.responseText);
+						var locations = data.FHRSEstablishment.EstablishmentCollection.EstablishmentDetail;
+						
+						for (var i = 0; i < locations.length; i++) {
+							var business = locations[i];
+							var name = business.BusinessName;
+							var rating = business.RatingValue;
+							var date = business.RatingDate;
+
+							if (rating.length > 1) {
+								rating = "_unknown";
+							}
+                            var dataHTML = "<br/><strong>Business Type:</strong> "+business.BusinessType+"<br/><strong>Address:</strong> "+business.AddressLine1+", "+business.AddressLine2+", "+business.AddressLine3+", "+business.AddressLine4+", "+business.PostCode+"<br/><br/><strong>Hygiene Score:</strong> "+business.Scores.Hygiene+"<br/><strong>Structural Score:</strong> "+business.Scores.Structural+"<br/><strong>Confidence in Management Score:</strong> "+business.Scores.ConfidenceInManagement+"<br/><br/><strong>New Rating Pending?</strong> "+(business.NewRatingPending? "Yes" : "No")+"<br/><br/><iframe frameborder=\"0\" style=\"border:0\" src=\"https://www.google.com/maps/embed/v1/place?key=AIzaSyD0nveMk1jf-vkKDWJU6yun6-fzGzLG72U &q="+business.Geocode.Latitude+",+"+business.Geocode.Longitude+"\"></iframe><br/><br/><strong>Local Authority: </strong> "+business.LocalAuthorityName+"<br/><strong>Email: </strong>"+business.LocalAuthorityEmailAddress+"<br/><br/>";
+                            
+							var html = "<tr class=\"img_row\" onclick=\"toggleShow("+i+")\"><td id=\"td-here\" class=\"header\"><div id=\"name\">"+name+"</div><br/>Last Inspection: "+date+"</td><td id=\"td-here\"><img src=\"./num"+rating+".png\" width=\"50px\"></td></tr><tr class=\"map_row\" id=\"map"+i+"\"><td colspan=\"2\">"+dataHTML+"</td></tr>";
+
+							document.getElementById("table-here").innerHTML += html;
+						}
+					}
+   				}
+   				req.send(null);
+			}
+
+			function currLoc() {
+				navigator.geolocation.getCurrentPosition(function(pos) {
+					fillTable(pos.coords.latitude, pos.coords.longitude);
+				}, function(e) {
+					alert("Have you turned location on?");
+				}, {timeout: 10000, enableHighAccuracy: true});
+			}
+
+			function search() {
+				var address = document.getElementById("placename").value;
+				var req = new XMLHttpRequest();
+
+				req.open("get", "https://maps.googleapis.com/maps/api/geocode/json?address="+encodeURIComponent(address)+"&key=AIzaSyD0nveMk1jf-vkKDWJU6yun6-fzGzLG72U", false);
+
+				req.onload = function(e) {
+   					if (req.readyState == 4 && req.status == 200) {
+   						var data = JSON.parse(req.responseText);
+
+   						var lat = data.results[0].geometry.viewport.northeast.lat;
+   						var lon = data.results[0].geometry.viewport.northeast.lng;
+
+   						fillTable(lat, lon);
+   					}
+   				}
+   				req.send(null);
+			}
+		</script>
+	</body>
+</html>
