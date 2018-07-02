@@ -27,8 +27,7 @@
 			}
             
             tr {
-                border-top: 1px solid black;
-                border-bottom: 1px solid black;
+                border-bottom: 20px solid #333;
             }
 
 			#name {
@@ -52,12 +51,12 @@
             
             .img_row > td {
                 padding: 20px;
-                background-color: #a2cf1a;
+                background-color: #869d40;
             }
 		</style>
 	</head>
 	<body>
-		<h1>Hygiene Checker</h1>
+		<h1 style="color:#90b817">Hygiene Checker</h1>
 		<table>
 			<tr>
 				<td style="border-style: none" colspan="2">
@@ -78,12 +77,40 @@
 		<table id="table-here"></table>
 
 		<script>
+            var ratingsInfo = {
+                "Confidence": {
+                    "0": "Very good",
+                    "5": "Good",
+                    "10": "Generally satisfactory",
+                    "20": "Major improvement necessary",
+                    "30": "Urgent improvement necessary"
+                },
+
+                "Hygiene": {
+                    "0": "Very good",
+                    "5": "Good",
+                    "10": "Generally satisfactory",
+                    "15": "Major improvement necessary",
+                    "25": "Urgent improvement necessary"
+                },
+
+                "Structural": {
+                    "0": "Very good",
+                    "5": "Good",
+                    "10": "Generally satisfactory",
+                    "20": "Major improvement necessary",
+                    "25": "Urgent improvement necessary"
+                }
+            };
+            
             function toggleShow(n) {
                 var x = document.getElementById("map"+n);
                 if (x.style.visibility === "collapse") {
                     x.style.visibility = "visible";
+                    x.previousSibling.style.borderBottom = "1px solid transparent";
                 } else {
                     x.style.visibility = "collapse";
+                    x.previousSibling.style.borderBottom = "20px solid #333";
                 }
             } 
             
@@ -109,9 +136,9 @@
 							if (rating.length > 1) {
 								rating = "_unknown";
 							}
-                            var dataHTML = "<br/><strong>Business Type:</strong> "+business.BusinessType+"<br/><strong>Address:</strong> "+business.AddressLine1+", "+business.AddressLine2+", "+business.AddressLine3+", "+business.AddressLine4+", "+business.PostCode+"<br/><br/><strong>Hygiene Score:</strong> "+business.Scores.Hygiene+"<br/><strong>Structural Score:</strong> "+business.Scores.Structural+"<br/><strong>Confidence in Management Score:</strong> "+business.Scores.ConfidenceInManagement+"<br/><br/><strong>New Rating Pending?</strong> "+(business.NewRatingPending? "Yes" : "No")+"<br/><br/><iframe frameborder=\"0\" style=\"border:0\" src=\"https://www.google.com/maps/embed/v1/place?key=AIzaSyD0nveMk1jf-vkKDWJU6yun6-fzGzLG72U &q="+business.Geocode.Latitude+",+"+business.Geocode.Longitude+"\"></iframe><br/><br/><strong>Local Authority: </strong> "+business.LocalAuthorityName+"<br/><strong>Email: </strong>"+business.LocalAuthorityEmailAddress+"<br/><br/>";
+                            var dataHTML = "<br/><strong>Rating:</strong> "+business.RatingValue+"<br/><br/><strong>Business Type:</strong> "+business.BusinessType+"<br/><strong>Address:</strong> "+business.AddressLine1+", "+business.AddressLine2+", "+business.AddressLine3+", "+business.AddressLine4+", "+business.PostCode+"<br/><br/><strong>Hygiene Score:</strong> "+ratingsInfo["Hygiene"][business.Scores.Hygiene]+"<br/><strong>Structural Score:</strong> "+ratingsInfo["Structural"][business.Scores.Structural]+"<br/><strong>Management Score:</strong> "+ratingsInfo["Confidence"][business.Scores.ConfidenceInManagement]+"<br/><br/><strong>New Rating Pending?</strong> "+(business.NewRatingPending? "Yes" : "No")+"<br/><br/><iframe frameborder=\"0\" style=\"border:0\" src=\"https://www.google.com/maps/embed/v1/place?key=AIzaSyD0nveMk1jf-vkKDWJU6yun6-fzGzLG72U &q="+business.Geocode.Latitude+",+"+business.Geocode.Longitude+"\"></iframe><br/><br/><strong>Local Authority: </strong> "+business.LocalAuthorityName+"<br/><strong>Email: </strong>"+business.LocalAuthorityEmailAddress+"<br/><br/>";
                             
-							var html = "<tr class=\"img_row\" onclick=\"toggleShow("+i+")\"><td id=\"td-here\" class=\"header\"><div id=\"name\">"+name+"</div><br/>Last Inspection: "+date+"</td><td id=\"td-here\"><img src=\"./num"+rating+".png\" width=\"50px\"></td></tr><tr class=\"map_row\" id=\"map"+i+"\"><td colspan=\"2\">"+dataHTML+"</td></tr>";
+							var html = "<tr class=\"img_row\" onclick=\"toggleShow("+i+")\"><td id=\"td-here\" class=\"header\"><br/><div id=\"name\">"+name+"</div><br/>Last Inspection: "+date+"<br/><br/></td><td id=\"td-here\"><img src=\"./num"+rating+".png\" width=\"50px\"></td></tr><tr class=\"map_row\" id=\"map"+i+"\"><td colspan=\"2\">"+dataHTML+"</td></tr>";
 
 							document.getElementById("table-here").innerHTML += html;
 						}

@@ -1,6 +1,11 @@
+@font-face {
+    font-family: Palanquin;
+    src: url(Palanquin-Bold.ttf);
+}
+
 body {
-	background: #90b817;
-	font-family: sans-serif;
+	background: #333;
+	font-family: Palanquin;
 	text-align: center;
 }
 
